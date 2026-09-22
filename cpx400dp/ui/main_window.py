@@ -9,6 +9,7 @@ from __future__ import annotations
 import queue
 import time
 import tkinter as tk
+from functools import partial
 from tkinter import ttk
 
 from cpx400dp.config import AppConfig
@@ -25,6 +26,7 @@ from cpx400dp.model import (
     IdentityReceived,
     InterfaceLockChanged,
     RawReply,
+    WorkerEvent,
 )
 from cpx400dp.ui.channel_panel import ChannelPanel
 from cpx400dp.ui.chart_panel import ChartPanel
@@ -42,7 +44,7 @@ class MainWindow:
     def __init__(self, root: tk.Tk, config: AppConfig):
         self.root = root
         self.config = config
-        self.events: queue.Queue = queue.Queue()
+        self.events: queue.Queue[WorkerEvent] = queue.Queue()
         self.worker = Cpx400dpWorker(self.events, poll_hz=config.poll_hz, poll_limit_status=config.poll_limit_status)
         self.history = History(max_points=config.history_max_points)
         self._latest = {1: {"v": 0.0, "i": 0.0}, 2: {"v": 0.0, "i": 0.0}}
@@ -126,7 +128,7 @@ class MainWindow:
         self.theme_var = tk.StringVar(value=self.config.theme)
         for name in THEME_NAMES:
             theme_menu.add_radiobutton(
-                label=name, value=name, variable=self.theme_var, command=lambda n=name: self._apply_theme(n)
+                label=name, value=name, variable=self.theme_var, command=partial(self._apply_theme, name)
             )
 
         self.compact_var = tk.BooleanVar(value=self.config.compact_mode)
@@ -227,7 +229,7 @@ class MainWindow:
             pass
         self.root.after(EVENT_PUMP_INTERVAL_MS, self._pump_events)
 
-    def _handle_event(self, evt) -> None:  # noqa: C901
+    def _handle_event(self, evt: WorkerEvent) -> None:  # noqa: C901
         if isinstance(evt, ConnectionStateChanged):
             self._apply_connection_state(evt)
         elif isinstance(evt, IdentityReceived):

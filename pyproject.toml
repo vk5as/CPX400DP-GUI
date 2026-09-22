@@ -66,3 +66,24 @@ select = ["E", "F", "I", "B", "UP"]
 # Line length is Black's job; Ruff's E501 can disagree with it on strings
 # Black deliberately leaves long (URLs, etc).
 ignore = ["E501"]
+
+[tool.mypy]
+# Matches the interpreter mypy actually runs under, not requires-python's
+# floor (3.10) — numpy's bundled stubs (a matplotlib dependency) use 3.12+
+# syntax that mypy rejects when targeting an older version.
+python_version = "3.13"
+# tests/ import fake_cpx via a runtime sys.path.insert of tools/; mirror
+# that statically so mypy can resolve it too.
+mypy_path = "tools"
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+check_untyped_defs = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+
+[[tool.mypy.overrides]]
+# Test functions aren't expected to carry full type annotations (standard
+# convention); still type-checked, just not required to be fully annotated.
+module = "tests.*"
+disallow_untyped_defs = false

@@ -126,6 +126,20 @@ class CommandAcked:
     request: str
 
 
+WorkerEvent = (
+    ConnectionStateChanged
+    | IdentityReceived
+    | ChannelReadingUpdated
+    | ChannelSettingsUpdated
+    | GlobalSettingsUpdated
+    | InterfaceLockChanged
+    | DiagnosticsUpdated
+    | RawReply
+    | ErrorOccurred
+    | CommandAcked
+)
+
+
 # ---------------------------------------------------------------------------
 # GUI-side aggregate view, rebuilt incrementally from the events above.
 # ---------------------------------------------------------------------------

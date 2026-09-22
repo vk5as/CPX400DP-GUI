@@ -4,6 +4,7 @@ LOCAL, interface lock, *RST, and poll rate."""
 from __future__ import annotations
 
 import tkinter as tk
+from collections.abc import Callable
 from tkinter import messagebox, ttk
 
 from cpx400dp.protocol import ConfigMode
@@ -11,7 +12,13 @@ from cpx400dp.worker import Cpx400dpWorker
 
 
 class GlobalPanel(ttk.LabelFrame):
-    def __init__(self, parent, worker: Cpx400dpWorker, on_status: callable, on_config_changing: callable):
+    def __init__(
+        self,
+        parent: tk.Misc,
+        worker: Cpx400dpWorker,
+        on_status: Callable[[str], None],
+        on_config_changing: Callable[[], None],
+    ):
         super().__init__(parent, text="Global", padding=8)
         self.worker = worker
         self.on_status = on_status
@@ -131,9 +138,12 @@ class GlobalPanel(ttk.LabelFrame):
         for child in self.winfo_children():
             self._set_state_recursive(child, state)
 
-    def _set_state_recursive(self, widget, state: str) -> None:
+    def _set_state_recursive(self, widget: tk.Misc, state: str) -> None:
         try:
-            widget.configure(state=state)
+            # Not every widget class supports the "state" option (e.g.
+            # plain Frames/Labels don't) — that's caught below, so this is
+            # deliberately outside what the static configure() overloads model.
+            widget.configure(state=state)  # type: ignore[call-arg]
         except tk.TclError:
             pass
         for child in widget.winfo_children():

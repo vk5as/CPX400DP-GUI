@@ -16,7 +16,7 @@ class NumericEntry(ttk.Frame):
 
     def __init__(
         self,
-        parent,
+        parent: tk.Misc,
         label: str,
         unit: str,
         minimum: float,
@@ -46,7 +46,7 @@ class NumericEntry(ttk.Frame):
     def _fmt(self, value: float) -> str:
         return f"{value:.{self.decimals}f}"
 
-    def _commit(self, _event=None) -> None:
+    def _commit(self, _event: tk.Event[tk.Misc] | None = None) -> None:
         if self._suppress_commit:
             return
         text = self.var.get().strip()
@@ -91,7 +91,7 @@ class Led(tk.Canvas):
         "red": "#e74c3c",
     }
 
-    def __init__(self, parent, size: int = 14, background: str | None = None):
+    def __init__(self, parent: tk.Misc, size: int = 14, background: str | None = None):
         super().__init__(parent, width=size, height=size, highlightthickness=0, background=background or "#f0f0f0")
         self._size = size
         self._oval = self.create_oval(1, 1, size - 1, size - 1, fill=self._COLORS["off"], outline="#222222")
@@ -106,7 +106,13 @@ class Led(tk.Canvas):
 class ValueDisplay(ttk.Frame):
     """A large read-only value with a unit suffix, for live readbacks."""
 
-    def __init__(self, parent, unit: str, decimals: int = 3, font=("TkDefaultFont", 16, "bold")):
+    def __init__(
+        self,
+        parent: tk.Misc,
+        unit: str,
+        decimals: int = 3,
+        font: tuple[str, int, str] = ("TkDefaultFont", 16, "bold"),
+    ):
         super().__init__(parent)
         self.decimals = decimals
         self.unit = unit

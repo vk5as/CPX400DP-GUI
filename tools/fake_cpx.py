@@ -274,7 +274,10 @@ class FakeCpxHandler(socketserver.StreamRequestHandler):
     def _handle(self, state: InstrumentState, name: str, m: re.Match) -> str | None:  # noqa: C901
         groups = m.groups()
         n = int(groups[0]) if name in self._CHANNEL_SCOPED else None
-        ch = state.channels[n] if n is not None else None
+        # Channel-scoped commands always have a real channel (1 or 2) here;
+        # for non-scoped commands ch is looked up but never referenced in
+        # the branches below, so the fallback value is arbitrary and unused.
+        ch = state.channels[n if n is not None else 1]
 
         try:
             if name == "read_vout":

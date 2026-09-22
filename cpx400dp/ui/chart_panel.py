@@ -34,7 +34,7 @@ WINDOWS = {
 
 
 class ChartPanel(ttk.LabelFrame):
-    def __init__(self, parent, history: History):
+    def __init__(self, parent: tk.Misc, history: History):
         super().__init__(parent, text="Live chart", padding=8)
         self.history = history
         self.paused = False

@@ -33,6 +33,7 @@ from cpx400dp.model import (
     IdentityReceived,
     InterfaceLockChanged,
     RawReply,
+    WorkerEvent,
 )
 from cpx400dp.protocol import LimitStatus
 from cpx400dp.transport import TcpTransport, TransportError
@@ -58,9 +59,9 @@ class Cpx400dpWorker(threading.Thread):
     events posted to `self.events`.
     """
 
-    def __init__(self, events: queue.Queue, poll_hz: float = 2.0, poll_limit_status: bool = True):
+    def __init__(self, events: queue.Queue[WorkerEvent], poll_hz: float = 2.0, poll_limit_status: bool = True):
         super().__init__(name="Cpx400dpWorker", daemon=True)
-        self.events: queue.Queue = events
+        self.events: queue.Queue[WorkerEvent] = events
         # A plain FIFO: the periodic poll is never enqueued here (it runs
         # from the loop's own timeout when due), so anything a user does
         # always jumps ahead of it without needing a priority queue.
@@ -203,28 +204,32 @@ class Cpx400dpWorker(threading.Thread):
         self.submit(_apply, coalesce_key=f"set_di{channel}", label=f"set_delta_i {channel} {amps}")
 
     def inc_voltage(self, channel: int) -> None:
-        self.submit(
-            lambda w: (w._send(proto.inc_voltage(channel)), w._refresh_channel_settings(channel)),
-            label=f"inc_voltage {channel}",
-        )
+        def _apply(w: Cpx400dpWorker) -> None:
+            w._send(proto.inc_voltage(channel))
+            w._refresh_channel_settings(channel)
+
+        self.submit(_apply, label=f"inc_voltage {channel}")
 
     def dec_voltage(self, channel: int) -> None:
-        self.submit(
-            lambda w: (w._send(proto.dec_voltage(channel)), w._refresh_channel_settings(channel)),
-            label=f"dec_voltage {channel}",
-        )
+        def _apply(w: Cpx400dpWorker) -> None:
+            w._send(proto.dec_voltage(channel))
+            w._refresh_channel_settings(channel)
+
+        self.submit(_apply, label=f"dec_voltage {channel}")
 
     def inc_current(self, channel: int) -> None:
-        self.submit(
-            lambda w: (w._send(proto.inc_current(channel)), w._refresh_channel_settings(channel)),
-            label=f"inc_current {channel}",
-        )
+        def _apply(w: Cpx400dpWorker) -> None:
+            w._send(proto.inc_current(channel))
+            w._refresh_channel_settings(channel)
+
+        self.submit(_apply, label=f"inc_current {channel}")
 
     def dec_current(self, channel: int) -> None:
-        self.submit(
-            lambda w: (w._send(proto.dec_current(channel)), w._refresh_channel_settings(channel)),
-            label=f"dec_current {channel}",
-        )
+        def _apply(w: Cpx400dpWorker) -> None:
+            w._send(proto.dec_current(channel))
+            w._refresh_channel_settings(channel)
+
+        self.submit(_apply, label=f"dec_current {channel}")
 
     def set_output(self, channel: int, on: bool) -> None:
         self.submit(
@@ -460,6 +465,9 @@ class Cpx400dpWorker(threading.Thread):
         self._connect_now()
 
     def _connect_now(self) -> None:
+        # Callers (_do_connect, _enter_reconnect) both guarantee _host is
+        # set before reaching here; this just makes that invariant explicit.
+        assert self._host is not None
         self._set_state(ConnectionState.CONNECTING)
         self._transport = TcpTransport(self._host, self._port)
         try:
@@ -546,5 +554,5 @@ class Cpx400dpWorker(threading.Thread):
                 self._transport.drain()
             raise TransportError(f"response desync: {exc}") from exc
 
-    def _post(self, event) -> None:
+    def _post(self, event: WorkerEvent) -> None:
         self.events.put(event)

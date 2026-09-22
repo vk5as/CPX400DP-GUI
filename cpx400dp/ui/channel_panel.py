@@ -5,6 +5,7 @@ never touches a socket directly."""
 from __future__ import annotations
 
 import tkinter as tk
+from collections.abc import Callable
 from tkinter import ttk
 
 from cpx400dp.model import ChannelReading, ChannelSettings
@@ -27,7 +28,7 @@ from cpx400dp.worker import Cpx400dpWorker
 
 
 class ChannelPanel(ttk.LabelFrame):
-    def __init__(self, parent, channel: int, worker: Cpx400dpWorker, on_status: callable):
+    def __init__(self, parent: tk.Misc, channel: int, worker: Cpx400dpWorker, on_status: Callable[[str], None]):
         super().__init__(parent, text=f"Output {channel}", padding=8)
         self.channel = channel
         self.worker = worker
@@ -259,9 +260,12 @@ class ChannelPanel(ttk.LabelFrame):
         for child in self.winfo_children():
             self._set_state_recursive(child, state)
 
-    def _set_state_recursive(self, widget, state: str) -> None:
+    def _set_state_recursive(self, widget: tk.Misc, state: str) -> None:
         try:
-            widget.configure(state=state)
+            # Not every widget class supports the "state" option (e.g.
+            # plain Frames/Labels don't) — that's caught below, so this is
+            # deliberately outside what the static configure() overloads model.
+            widget.configure(state=state)  # type: ignore[call-arg]
         except tk.TclError:
             pass
         for child in widget.winfo_children():

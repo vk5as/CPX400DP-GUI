@@ -48,7 +48,7 @@ def _decode_bits(value: int, bit_names: dict[int, str]) -> str:
 
 
 class DiagnosticsPanel(ttk.Frame):
-    def __init__(self, parent, worker: Cpx400dpWorker):
+    def __init__(self, parent: tk.Misc, worker: Cpx400dpWorker):
         super().__init__(parent, padding=8)
         self.worker = worker
         self._palette = LIGHT
