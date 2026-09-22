@@ -117,7 +117,7 @@ class InstrumentState:
 
 
 class FakeCpxHandler(socketserver.StreamRequestHandler):
-    server: "FakeCpxServer"
+    server: FakeCpxServer
 
     def handle(self) -> None:
         state: InstrumentState = self.server.state
@@ -271,7 +271,7 @@ class FakeCpxHandler(socketserver.StreamRequestHandler):
         "query_lse",
     }
 
-    def _handle(self, state: InstrumentState, name: str, m: "re.Match") -> str | None:  # noqa: C901
+    def _handle(self, state: InstrumentState, name: str, m: re.Match) -> str | None:  # noqa: C901
         groups = m.groups()
         n = int(groups[0]) if name in self._CHANNEL_SCOPED else None
         ch = state.channels[n] if n is not None else None

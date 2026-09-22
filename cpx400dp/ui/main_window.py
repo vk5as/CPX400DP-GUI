@@ -42,7 +42,7 @@ class MainWindow:
     def __init__(self, root: tk.Tk, config: AppConfig):
         self.root = root
         self.config = config
-        self.events: "queue.Queue" = queue.Queue()
+        self.events: queue.Queue = queue.Queue()
         self.worker = Cpx400dpWorker(self.events, poll_hz=config.poll_hz, poll_limit_status=config.poll_limit_status)
         self.history = History(max_points=config.history_max_points)
         self._latest = {1: {"v": 0.0, "i": 0.0}, 2: {"v": 0.0, "i": 0.0}}

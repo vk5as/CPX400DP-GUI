@@ -48,14 +48,14 @@ def sim():
 
 @pytest.fixture
 def worker():
-    events: "queue.Queue" = queue.Queue()
+    events: queue.Queue = queue.Queue()
     w = Cpx400dpWorker(events, poll_hz=20.0)  # fast poll to keep tests quick
     w.start()
     yield w, events
     w.shutdown(timeout=3.0)
 
 
-def drain_until(events: "queue.Queue", predicate, timeout: float = 3.0):
+def drain_until(events: queue.Queue, predicate, timeout: float = 3.0):
     """Pop events until one matches predicate; return it. Fails the test on
     timeout."""
     deadline = time.monotonic() + timeout

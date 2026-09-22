@@ -24,7 +24,7 @@ class AppConfig:
     compact_mode: bool = False
 
     @classmethod
-    def load(cls, path: Path = DEFAULT_CONFIG_PATH) -> "AppConfig":
+    def load(cls, path: Path = DEFAULT_CONFIG_PATH) -> AppConfig:
         if not path.exists():
             return cls()
         try:
