@@ -466,8 +466,10 @@ class Cpx400dpWorker(threading.Thread):
 
     def _connect_now(self) -> None:
         # Callers (_do_connect, _enter_reconnect) both guarantee _host is
-        # set before reaching here; this just makes that invariant explicit.
-        assert self._host is not None
+        # set before reaching here; this just makes that invariant explicit
+        # for mypy. Not a security control -- fine if stripped under -O,
+        # since TcpTransport would then just fail loudly on a None host.
+        assert self._host is not None  # nosec B101
         self._set_state(ConnectionState.CONNECTING)
         self._transport = TcpTransport(self._host, self._port)
         try:

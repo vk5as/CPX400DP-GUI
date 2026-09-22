@@ -93,8 +93,10 @@ class ChannelSim:
             v_out, i_out = 0.0, 0.0
 
         if noise:
-            v_out += random.uniform(-0.003, 0.003)
-            i_out += random.uniform(-0.002, 0.002)
+            # Cosmetic jitter on simulated readings, not a security-sensitive
+            # value -- non-cryptographic random is fine here.
+            v_out += random.uniform(-0.003, 0.003)  # nosec B311
+            i_out += random.uniform(-0.002, 0.002)  # nosec B311
 
         return max(v_out, 0.0), max(i_out, 0.0), bits
 
@@ -476,7 +478,11 @@ class FakeCpxServer(socketserver.ThreadingTCPServer):
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--host", default="0.0.0.0")
+    ap.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="bind address (default: loopback only; use 0.0.0.0 to accept connections from other machines)",
+    )
     ap.add_argument("--port", type=int, default=DEFAULT_PORT)
     ap.add_argument("--drop-after", type=int, default=0, help="close connection after N commands")
     ap.add_argument("--slow", type=float, default=0.0, help="artificial delay per command, seconds")

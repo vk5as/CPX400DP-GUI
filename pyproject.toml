@@ -87,3 +87,8 @@ no_implicit_optional = true
 # convention); still type-checked, just not required to be fully annotated.
 module = "tests.*"
 disallow_untyped_defs = false
+
+[tool.bandit]
+# tests/ isn't security-scanned (standard convention); the actual package
+# and the bundled simulator are.
+exclude_dirs = ["tests", ".venv"]
