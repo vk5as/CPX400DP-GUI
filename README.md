@@ -117,6 +117,17 @@ Running from source (not installed): `.venv/bin/python -m cpx400dp.cli ...`.
 No hardware or display required — `test_worker.py` drives the real worker thread
 against `tools/fake_cpx.py` over loopback TCP.
 
+## Code quality
+
+```bash
+.venv/bin/black cpx400dp/ tools/ tests/         # formatting
+.venv/bin/ruff check cpx400dp/ tools/ tests/    # linting
+.venv/bin/mypy cpx400dp/ tools/ tests/          # type checking
+.venv/bin/bandit -c pyproject.toml -r cpx400dp/ tools/   # security scan
+```
+
+All four are configured in `pyproject.toml` and run clean on the current codebase.
+
 ## First connection to real hardware — safety checklist
 
 1. Leave both outputs off. Connect the LAN cable and power on the instrument.
