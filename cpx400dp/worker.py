@@ -1,7 +1,7 @@
 """The single thread that ever touches the instrument socket.
 
 The GUI never calls into transport.py or protocol.py directly. It calls
-PsuWorker.submit(...) (or one of the convenience methods) to enqueue work,
+Cpx400dpWorker.submit(...) (or one of the convenience methods) to enqueue work,
 and drains worker.events (a plain queue.Queue) on a Tk `after()` timer to
 learn what happened. This keeps every blocking call off the Tk thread and
 keeps the instrument's read-and-clear registers meaningful (see LSR<n>?
@@ -18,8 +18,8 @@ import time
 from dataclasses import dataclass
 from typing import Callable
 
-from psu import protocol as proto
-from psu.model import (
+from cpx400dp import protocol as proto
+from cpx400dp.model import (
     ChannelReading,
     ChannelReadingUpdated,
     ChannelSettings,
@@ -34,8 +34,8 @@ from psu.model import (
     InterfaceLockChanged,
     RawReply,
 )
-from psu.protocol import LimitStatus
-from psu.transport import TcpTransport, TransportError
+from cpx400dp.protocol import LimitStatus
+from cpx400dp.transport import TcpTransport, TransportError
 
 BACKOFF_INITIAL_S = 0.5
 BACKOFF_MAX_S = 8.0
@@ -46,11 +46,11 @@ CONSECUTIVE_FAILURES_BEFORE_RECONNECT = 3
 class _Request:
     seq: int
     coalesce_key: str | None
-    action: Callable[["PsuWorker"], None]
+    action: Callable[["Cpx400dpWorker"], None]
     label: str = ""
 
 
-class PsuWorker(threading.Thread):
+class Cpx400dpWorker(threading.Thread):
     """Owns the TCP connection and all command/response traffic.
 
     Public API is intentionally small and non-blocking: submit(), connect(),
@@ -59,7 +59,7 @@ class PsuWorker(threading.Thread):
     """
 
     def __init__(self, events: "queue.Queue", poll_hz: float = 2.0, poll_limit_status: bool = True):
-        super().__init__(name="PsuWorker", daemon=True)
+        super().__init__(name="Cpx400dpWorker", daemon=True)
         self.events: queue.Queue = events
         # A plain FIFO: the periodic poll is never enqueued here (it runs
         # from the loop's own timeout when due), so anything a user does
@@ -96,7 +96,7 @@ class PsuWorker(threading.Thread):
 
     # -- public API, callable from the GUI thread -------------------------
 
-    def submit(self, action: Callable[["PsuWorker"], None], *, coalesce_key: str | None = None,
+    def submit(self, action: Callable[["Cpx400dpWorker"], None], *, coalesce_key: str | None = None,
                label: str = "") -> None:
         """Enqueue a user-initiated action."""
         seq = next(self._seq)
@@ -112,18 +112,18 @@ class PsuWorker(threading.Thread):
         self.submit(lambda w: w._do_disconnect(), label="disconnect")
 
     def set_poll_hz(self, hz: float) -> None:
-        def _apply(w: "PsuWorker") -> None:
+        def _apply(w: "Cpx400dpWorker") -> None:
             w._poll_hz = hz
             w._poll_interval_s = 1.0 / hz if hz > 0 else 0.5
         self.submit(_apply, label=f"set_poll_hz {hz}")
 
     def set_poll_limit_status(self, enabled: bool) -> None:
-        def _apply(w: "PsuWorker") -> None:
+        def _apply(w: "Cpx400dpWorker") -> None:
             w._poll_limit_status = enabled
         self.submit(_apply, label=f"set_poll_limit_status {enabled}")
 
     def clear_latched_trips(self, channel: int | None = None) -> None:
-        def _apply(w: "PsuWorker") -> None:
+        def _apply(w: "Cpx400dpWorker") -> None:
             channels = [channel] if channel else [1, 2]
             for ch in channels:
                 w._latched[ch] = {"ov": False, "oc": False, "hard": False}
@@ -133,7 +133,7 @@ class PsuWorker(threading.Thread):
         """Send an arbitrary command/group typed into the diagnostics
         console. If it looks like a query (ends with '?' on any of its
         ';'-separated units), read back that many responses."""
-        def _apply(w: "PsuWorker") -> None:
+        def _apply(w: "Cpx400dpWorker") -> None:
             units = [u.strip() for u in command.split(";") if u.strip()]
             expected = sum(1 for u in units if u.endswith("?"))
             try:
@@ -153,39 +153,39 @@ class PsuWorker(threading.Thread):
     # -- convenience command builders (still just enqueue, non-blocking) --
 
     def set_voltage(self, channel: int, volts: float, verify: bool = False) -> None:
-        def _apply(w: "PsuWorker") -> None:
+        def _apply(w: "Cpx400dpWorker") -> None:
             w._send(proto.set_voltage(channel, volts, verify))
             w._post(CommandAcked(request=f"V{channel}={volts}"))
             w._refresh_channel_settings(channel)
         self.submit(_apply, coalesce_key=f"set_v{channel}", label=f"set_voltage {channel} {volts}")
 
     def set_current(self, channel: int, amps: float) -> None:
-        def _apply(w: "PsuWorker") -> None:
+        def _apply(w: "Cpx400dpWorker") -> None:
             w._send(proto.set_current(channel, amps))
             w._post(CommandAcked(request=f"I{channel}={amps}"))
             w._refresh_channel_settings(channel)
         self.submit(_apply, coalesce_key=f"set_i{channel}", label=f"set_current {channel} {amps}")
 
     def set_ovp(self, channel: int, volts: float) -> None:
-        def _apply(w: "PsuWorker") -> None:
+        def _apply(w: "Cpx400dpWorker") -> None:
             w._send(proto.set_ovp(channel, volts))
             w._refresh_channel_settings(channel)
         self.submit(_apply, coalesce_key=f"set_ovp{channel}", label=f"set_ovp {channel} {volts}")
 
     def set_ocp(self, channel: int, amps: float) -> None:
-        def _apply(w: "PsuWorker") -> None:
+        def _apply(w: "Cpx400dpWorker") -> None:
             w._send(proto.set_ocp(channel, amps))
             w._refresh_channel_settings(channel)
         self.submit(_apply, coalesce_key=f"set_ocp{channel}", label=f"set_ocp {channel} {amps}")
 
     def set_delta_v(self, channel: int, volts: float) -> None:
-        def _apply(w: "PsuWorker") -> None:
+        def _apply(w: "Cpx400dpWorker") -> None:
             w._send(proto.set_delta_v(channel, volts))
             w._refresh_channel_settings(channel)
         self.submit(_apply, coalesce_key=f"set_dv{channel}", label=f"set_delta_v {channel} {volts}")
 
     def set_delta_i(self, channel: int, amps: float) -> None:
-        def _apply(w: "PsuWorker") -> None:
+        def _apply(w: "Cpx400dpWorker") -> None:
             w._send(proto.set_delta_i(channel, amps))
             w._refresh_channel_settings(channel)
         self.submit(_apply, coalesce_key=f"set_di{channel}", label=f"set_delta_i {channel} {amps}")
@@ -217,25 +217,25 @@ class PsuWorker(threading.Thread):
         self.submit(lambda w: w._send(proto.save_setup(channel, store)), label=f"save_setup {channel} {store}")
 
     def recall_setup(self, channel: int, store: int) -> None:
-        def _apply(w: "PsuWorker") -> None:
+        def _apply(w: "Cpx400dpWorker") -> None:
             w._send(proto.recall_setup(channel, store))
             w._refresh_channel_settings(channel)
         self.submit(_apply, label=f"recall_setup {channel} {store}")
 
     def set_config(self, mode: proto.ConfigMode) -> None:
-        def _apply(w: "PsuWorker") -> None:
+        def _apply(w: "Cpx400dpWorker") -> None:
             w._send(proto.set_config(mode))
             w._refresh_global_settings()
         self.submit(_apply, label=f"set_config {mode}")
 
     def set_ratio(self, percent: float) -> None:
-        def _apply(w: "PsuWorker") -> None:
+        def _apply(w: "Cpx400dpWorker") -> None:
             w._send(proto.set_ratio(percent))
             w._refresh_global_settings()
         self.submit(_apply, coalesce_key="set_ratio", label=f"set_ratio {percent}")
 
     def trip_reset(self) -> None:
-        def _apply(w: "PsuWorker") -> None:
+        def _apply(w: "Cpx400dpWorker") -> None:
             w._send(proto.trip_reset())
             for ch in (1, 2):
                 w._latched[ch] = {"ov": False, "oc": False, "hard": False}
@@ -245,25 +245,25 @@ class PsuWorker(threading.Thread):
         self.submit(lambda w: w._send(proto.go_local()), label="go_local")
 
     def interface_lock(self) -> None:
-        def _apply(w: "PsuWorker") -> None:
+        def _apply(w: "Cpx400dpWorker") -> None:
             reply = w._query(proto.interface_lock())
             w._post(InterfaceLockChanged(owned_by_us=proto.parse_int(reply)))
         self.submit(_apply, label="interface_lock")
 
     def interface_unlock(self) -> None:
-        def _apply(w: "PsuWorker") -> None:
+        def _apply(w: "Cpx400dpWorker") -> None:
             w._query(proto.interface_unlock())
             w._post(InterfaceLockChanged(owned_by_us=0))
         self.submit(_apply, label="interface_unlock")
 
     def reset_instrument(self) -> None:
-        def _apply(w: "PsuWorker") -> None:
+        def _apply(w: "Cpx400dpWorker") -> None:
             w._send(proto.reset())
             w._refresh_all_settings()
         self.submit(_apply, label="reset_instrument")
 
     def refresh_diagnostics(self) -> None:
-        def _apply(w: "PsuWorker") -> None:
+        def _apply(w: "Cpx400dpWorker") -> None:
             eer = proto.parse_int(w._query(proto.query_execution_error()))
             qer = proto.parse_int(w._query(proto.query_query_error()))
             esr = proto.parse_int(w._query(proto.query_event_status()))

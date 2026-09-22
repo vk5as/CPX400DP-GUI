@@ -1,6 +1,6 @@
 import pytest
 
-from psu import protocol as p
+from cpx400dp import protocol as p
 
 
 # ---------------------------------------------------------------------------

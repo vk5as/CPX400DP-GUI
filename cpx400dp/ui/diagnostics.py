@@ -11,9 +11,9 @@ import time
 import tkinter as tk
 from tkinter import scrolledtext, ttk
 
-from psu.model import DiagnosticsUpdated, RawReply
-from psu.ui.themes import LIGHT, Palette
-from psu.worker import PsuWorker
+from cpx400dp.model import DiagnosticsUpdated, RawReply
+from cpx400dp.ui.themes import LIGHT, Palette
+from cpx400dp.worker import Cpx400dpWorker
 
 ESR_BITS = {
     7: "Power On", 6: "User Request", 5: "Command Error", 4: "Execution Error",
@@ -34,7 +34,7 @@ def _decode_bits(value: int, bit_names: dict[int, str]) -> str:
 
 
 class DiagnosticsPanel(ttk.Frame):
-    def __init__(self, parent, worker: PsuWorker):
+    def __init__(self, parent, worker: Cpx400dpWorker):
         super().__init__(parent, padding=8)
         self.worker = worker
         self._palette = LIGHT

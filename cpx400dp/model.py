@@ -11,7 +11,7 @@ import time
 from dataclasses import dataclass, field
 from enum import Enum, auto
 
-from psu.protocol import Identity, LimitStatus
+from cpx400dp.protocol import Identity, LimitStatus
 
 
 class ConnectionState(Enum):

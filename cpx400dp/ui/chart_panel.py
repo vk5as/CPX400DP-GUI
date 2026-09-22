@@ -20,8 +20,8 @@ matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg  # noqa: E402
 from matplotlib.figure import Figure  # noqa: E402
 
-from psu.history import History  # noqa: E402
-from psu.ui.themes import LIGHT, Palette  # noqa: E402
+from cpx400dp.history import History  # noqa: E402
+from cpx400dp.ui.themes import LIGHT, Palette  # noqa: E402
 
 WINDOWS = {
     "10 s": 10.0,

@@ -6,7 +6,10 @@ readback per channel, a live matplotlib history chart, and every documented remo
 command exposed through the UI (plus a raw command console for anything else).
 
 All communication with the instrument happens on a single background worker thread
-(`psu/worker.py`); the Tk main thread never touches the socket.
+(`cpx400dp/worker.py`); the Tk main thread never touches the socket.
+
+> This project was developed with the assistance of AI, using tools including
+> Claude Code, T3 Code, and Visual Studio Code.
 
 ![Main control view: both channels live, connected to the simulator](docs/screenshots/main_control.png)
 
@@ -33,13 +36,30 @@ The **View** menu has:
 |---|---|
 | ![System theme — the platform's native, undecorated ttk look](docs/screenshots/theme_system.png) | ![Compact Mode — secondary controls hidden](docs/screenshots/compact_mode.png) |
 
-## Setup
+## Installation
+
+```bash
+pip install cpx400dp
+```
+
+`tkinter` is a prerequisite this can't install for you — it ships via your OS,
+not PyPI. On Debian/Ubuntu: `sudo apt install python3-tk`. It's bundled with the
+standard Windows and macOS Python installers.
+
+This installs a `cpx400dp-gui` command:
+
+```bash
+cpx400dp-gui
+```
+
+## Setup from source
 
 ```bash
 sudo apt install -y python3-tk python3.13-venv   # tkinter/venv are system packages, not pip
-cd /home/dev/projects/psu
+git clone https://github.com/vk5as/CPX400DP-GUI.git
+cd CPX400DP-GUI
 python3 -m venv --system-site-packages .venv     # --system-site-packages so the venv sees apt's tkinter
-.venv/bin/pip install matplotlib pytest
+.venv/bin/pip install -e ".[dev]"
 ```
 
 ## Running
@@ -47,7 +67,7 @@ python3 -m venv --system-site-packages .venv     # --system-site-packages so the
 Against a real instrument on your LAN:
 
 ```bash
-.venv/bin/python -m psu.app
+.venv/bin/python -m cpx400dp.app
 ```
 
 Enter the instrument's IP (or `192.168.0.100`, the Auto-IP fallback address) and port
@@ -57,7 +77,7 @@ Against the bundled simulator (no hardware needed):
 
 ```bash
 .venv/bin/python tools/fake_cpx.py --port 9221 &
-.venv/bin/python -m psu.app
+.venv/bin/python -m cpx400dp.app
 ```
 
 The simulator implements the documented command set with a simple resistive-load
@@ -100,10 +120,14 @@ against `tools/fake_cpx.py` over loopback TCP.
 - `LSR<n>?` (limit/trip status) is **read-and-clear** on the instrument. Continuous
   polling would make trip indications flash for one cycle and vanish, so the app
   latches trip bits (OV, OC, hard-trip) until you press **Clear Trips** or the
-  instrument's `TRIPRST` runs — see `worker.py`'s `_latched` state.
+  instrument's `TRIPRST` runs — see `cpx400dp/worker.py`'s `_latched` state.
 - Changing `CONFIG` (independent vs. voltage-tracking) with an output on returns
   error 104. The app turns Output 2 off first automatically and explains why in the
   status bar.
 - The instrument's own power envelope (420 W/output, with 60 V/7 A, 42 V/10 A,
   20 V/20 A boundaries) is not enforced by the instrument as a hard limit — it just
   goes unregulated outside it. The GUI warns but does not block.
+
+## License
+
+MIT — see [LICENSE](LICENSE).

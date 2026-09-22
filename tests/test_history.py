@@ -1,7 +1,7 @@
 import csv
 import time
 
-from psu.history import History
+from cpx400dp.history import History
 
 
 def test_add_and_len():

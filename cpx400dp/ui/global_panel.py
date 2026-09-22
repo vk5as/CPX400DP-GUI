@@ -6,12 +6,12 @@ from __future__ import annotations
 import tkinter as tk
 from tkinter import messagebox, ttk
 
-from psu.protocol import ConfigMode
-from psu.worker import PsuWorker
+from cpx400dp.protocol import ConfigMode
+from cpx400dp.worker import Cpx400dpWorker
 
 
 class GlobalPanel(ttk.LabelFrame):
-    def __init__(self, parent, worker: PsuWorker, on_status: callable, on_config_changing: callable):
+    def __init__(self, parent, worker: Cpx400dpWorker, on_status: callable, on_config_changing: callable):
         super().__init__(parent, text="Global", padding=8)
         self.worker = worker
         self.on_status = on_status

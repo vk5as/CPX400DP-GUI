@@ -1,11 +1,11 @@
-"""Entry point: python -m psu.app"""
+"""Entry point: python -m cpx400dp.app"""
 
 from __future__ import annotations
 
 import tkinter as tk
 
-from psu.config import AppConfig
-from psu.ui.main_window import MainWindow
+from cpx400dp.config import AppConfig
+from cpx400dp.ui.main_window import MainWindow
 
 
 def main() -> None:

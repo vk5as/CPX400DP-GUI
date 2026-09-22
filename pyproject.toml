@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cpx400dp"
+version = "0.1.0"
+description = "Tkinter GUI for remote-controlling an Aim-TTi CPX400DP power supply over LAN"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [
+    { name = "VK5AS", email = "vk5as.com@gmail.com" },
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: X11 Applications",
+    "Environment :: Win32 (MS Windows)",
+    "Environment :: MacOS X",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: End Users/Desktop",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Terminals",
+]
+dependencies = [
+    "matplotlib>=3.5",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.urls]
+Homepage = "https://github.com/vk5as/CPX400DP-GUI"
+Repository = "https://github.com/vk5as/CPX400DP-GUI"
+Issues = "https://github.com/vk5as/CPX400DP-GUI/issues"
+
+[project.scripts]
+cpx400dp-gui = "cpx400dp.app:main"
+
+[tool.setuptools.packages.find]
+include = ["cpx400dp*"]

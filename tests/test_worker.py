@@ -19,14 +19,14 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
 from fake_cpx import FakeCpxServer  # noqa: E402
 
-from psu.model import (
+from cpx400dp.model import (
     ChannelReadingUpdated,
     ChannelSettingsUpdated,
     ConnectionState,
     ConnectionStateChanged,
     IdentityReceived,
 )
-from psu.worker import PsuWorker
+from cpx400dp.worker import Cpx400dpWorker
 
 
 def _free_port() -> int:
@@ -49,7 +49,7 @@ def sim():
 @pytest.fixture
 def worker():
     events: "queue.Queue" = queue.Queue()
-    w = PsuWorker(events, poll_hz=20.0)  # fast poll to keep tests quick
+    w = Cpx400dpWorker(events, poll_hz=20.0)  # fast poll to keep tests quick
     w.start()
     yield w, events
     w.shutdown(timeout=3.0)

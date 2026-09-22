@@ -6,8 +6,8 @@ delegate drawing to the OS. A real Light/Dark palette is only possible on
 top of 'clam', a pure-Tcl theme that renders identically (and is always
 available) on Windows, macOS, and Linux alike.
 
-Light and Dark are registered as their own named themes ("psu_light",
-"psu_dark") cloned from 'clam' via style.theme_create, rather than mutating
+Light and Dark are registered as their own named themes ("cpx400dp_light",
+"cpx400dp_dark") cloned from 'clam' via style.theme_create, rather than mutating
 'clam' in place. That distinction matters: 'clam' is also one of the
 fallback candidates for "System" on platforms with no native ttk theme
 (Linux, mainly) — if Light/Dark repainted 'clam' directly, switching to

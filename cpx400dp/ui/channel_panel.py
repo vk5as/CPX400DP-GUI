@@ -1,5 +1,5 @@
 """One channel's control + readback panel. Instantiated twice (channel 1
-and 2). Talks to the instrument only through the PsuWorker handed to it —
+and 2). Talks to the instrument only through the Cpx400dpWorker handed to it —
 never touches a socket directly."""
 
 from __future__ import annotations
@@ -7,8 +7,8 @@ from __future__ import annotations
 import tkinter as tk
 from tkinter import ttk
 
-from psu.model import ChannelReading, ChannelSettings
-from psu.protocol import (
+from cpx400dp.model import ChannelReading, ChannelSettings
+from cpx400dp.protocol import (
     CURRENT_MAX,
     CURRENT_MIN,
     OCP_MAX,
@@ -21,13 +21,13 @@ from psu.protocol import (
     VOLTAGE_MAX,
     VOLTAGE_MIN,
 )
-from psu.ui.themes import LIGHT, Palette
-from psu.ui.widgets import Led, NumericEntry, ValueDisplay
-from psu.worker import PsuWorker
+from cpx400dp.ui.themes import LIGHT, Palette
+from cpx400dp.ui.widgets import Led, NumericEntry, ValueDisplay
+from cpx400dp.worker import Cpx400dpWorker
 
 
 class ChannelPanel(ttk.LabelFrame):
-    def __init__(self, parent, channel: int, worker: PsuWorker, on_status: callable):
+    def __init__(self, parent, channel: int, worker: Cpx400dpWorker, on_status: callable):
         super().__init__(parent, text=f"Output {channel}", padding=8)
         self.channel = channel
         self.worker = worker

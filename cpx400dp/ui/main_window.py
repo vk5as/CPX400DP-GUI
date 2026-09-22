@@ -11,9 +11,9 @@ import time
 import tkinter as tk
 from tkinter import ttk
 
-from psu.config import AppConfig
-from psu.history import History
-from psu.model import (
+from cpx400dp.config import AppConfig
+from cpx400dp.history import History
+from cpx400dp.model import (
     ChannelReadingUpdated,
     ChannelSettingsUpdated,
     CommandAcked,
@@ -26,12 +26,12 @@ from psu.model import (
     InterfaceLockChanged,
     RawReply,
 )
-from psu.ui.channel_panel import ChannelPanel
-from psu.ui.chart_panel import ChartPanel
-from psu.ui.diagnostics import DiagnosticsPanel
-from psu.ui.global_panel import GlobalPanel
-from psu.ui.themes import LIGHT, THEME_NAMES, apply_theme, get_palette
-from psu.worker import PsuWorker
+from cpx400dp.ui.channel_panel import ChannelPanel
+from cpx400dp.ui.chart_panel import ChartPanel
+from cpx400dp.ui.diagnostics import DiagnosticsPanel
+from cpx400dp.ui.global_panel import GlobalPanel
+from cpx400dp.ui.themes import LIGHT, THEME_NAMES, apply_theme, get_palette
+from cpx400dp.worker import Cpx400dpWorker
 
 EVENT_PUMP_INTERVAL_MS = 50
 CHART_REFRESH_INTERVAL_MS = 200
@@ -43,7 +43,7 @@ class MainWindow:
         self.root = root
         self.config = config
         self.events: "queue.Queue" = queue.Queue()
-        self.worker = PsuWorker(self.events, poll_hz=config.poll_hz, poll_limit_status=config.poll_limit_status)
+        self.worker = Cpx400dpWorker(self.events, poll_hz=config.poll_hz, poll_limit_status=config.poll_limit_status)
         self.history = History(max_points=config.history_max_points)
         self._latest = {1: {"v": 0.0, "i": 0.0}, 2: {"v": 0.0, "i": 0.0}}
         self._connection_state = ConnectionState.DISCONNECTED
