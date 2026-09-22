@@ -45,17 +45,20 @@ class ChartPanel(ttk.LabelFrame):
         controls.pack(side="top", fill="x")
         ttk.Label(controls, text="Window").pack(side="left")
         self.window_var = tk.StringVar(value="1 min")
-        window_combo = ttk.Combobox(controls, textvariable=self.window_var, values=list(WINDOWS.keys()),
-                                     width=8, state="readonly")
+        window_combo = ttk.Combobox(
+            controls, textvariable=self.window_var, values=list(WINDOWS.keys()), width=8, state="readonly"
+        )
         window_combo.pack(side="left", padx=4)
         window_combo.bind("<<ComboboxSelected>>", lambda _e: self._full_redraw())
 
         self.pause_var = tk.BooleanVar(value=False)
-        ttk.Checkbutton(controls, text="Pause", variable=self.pause_var,
-                        command=self._on_pause_toggled).pack(side="left", padx=8)
+        ttk.Checkbutton(controls, text="Pause", variable=self.pause_var, command=self._on_pause_toggled).pack(
+            side="left", padx=8
+        )
         self.autoscale_var = tk.BooleanVar(value=True)
-        ttk.Checkbutton(controls, text="Autoscale", variable=self.autoscale_var,
-                        command=self._full_redraw).pack(side="left", padx=4)
+        ttk.Checkbutton(controls, text="Autoscale", variable=self.autoscale_var, command=self._full_redraw).pack(
+            side="left", padx=4
+        )
         ttk.Button(controls, text="Clear", command=self._on_clear).pack(side="left", padx=4)
         ttk.Button(controls, text="Export CSV", command=self._on_export).pack(side="left", padx=4)
 
@@ -107,7 +110,9 @@ class ChartPanel(ttk.LabelFrame):
 
     def _on_export(self) -> None:
         path = filedialog.asksaveasfilename(
-            defaultextension=".csv", filetypes=[("CSV", "*.csv")], initialfile="cpx400dp_history.csv",
+            defaultextension=".csv",
+            filetypes=[("CSV", "*.csv")],
+            initialfile="cpx400dp_history.csv",
         )
         if not path:
             return

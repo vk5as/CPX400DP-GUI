@@ -136,11 +136,18 @@ def _dispatch(transport: TcpTransport, args: argparse.Namespace) -> None:  # noq
 
     elif cmd == "status":
         ls = proto.parse_limit_status(_query(transport, proto.query_limit_status(args.channel)))
-        flags = [name for name, is_set in (
-            ("CV", ls.constant_voltage), ("CC", ls.constant_current),
-            ("OV_TRIP", ls.over_voltage_trip), ("OC_TRIP", ls.over_current_trip),
-            ("UNREGULATED", ls.unregulated), ("HARD_TRIP", ls.hard_trip),
-        ) if is_set]
+        flags = [
+            name
+            for name, is_set in (
+                ("CV", ls.constant_voltage),
+                ("CC", ls.constant_current),
+                ("OV_TRIP", ls.over_voltage_trip),
+                ("OC_TRIP", ls.over_current_trip),
+                ("UNREGULATED", ls.unregulated),
+                ("HARD_TRIP", ls.hard_trip),
+            )
+            if is_set
+        ]
         print(", ".join(flags) if flags else "(none)")
 
     elif cmd == "all-on":

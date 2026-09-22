@@ -91,16 +91,12 @@ class TcpTransport:
         while lines_found < count:
             remaining = deadline - time.monotonic()
             if remaining <= 0:
-                raise TransportError(
-                    f"timed out waiting for {count} response(s), got {lines_found}"
-                )
+                raise TransportError(f"timed out waiting for {count} response(s), got {lines_found}")
             try:
                 self._sock.settimeout(remaining)
                 chunk = self._sock.recv(4096)
             except socket.timeout as exc:
-                raise TransportError(
-                    f"timed out waiting for {count} response(s), got {lines_found}"
-                ) from exc
+                raise TransportError(f"timed out waiting for {count} response(s), got {lines_found}") from exc
             except OSError as exc:
                 self.close()
                 raise TransportError(f"recv failed: {exc}") from exc

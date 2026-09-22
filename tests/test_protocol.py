@@ -2,10 +2,10 @@ import pytest
 
 from cpx400dp import protocol as p
 
-
 # ---------------------------------------------------------------------------
 # Command builders
 # ---------------------------------------------------------------------------
+
 
 def test_set_voltage():
     assert p.set_voltage(1, 12.0) == "V1 12"
@@ -142,6 +142,7 @@ def test_group():
 # Response parsers — real reply formats from the manual
 # ---------------------------------------------------------------------------
 
+
 def test_parse_voltage_setpoint():
     assert p.parse_voltage_setpoint("V1 12.000\r\n") == 12.0
     assert p.parse_voltage_setpoint("V2 5.250") == 5.25
@@ -244,6 +245,7 @@ def test_parse_limit_status_bits():
 # Malformed input handling
 # ---------------------------------------------------------------------------
 
+
 def test_parse_readback_voltage_rejects_bad_suffix():
     with pytest.raises(p.ProtocolError):
         p.parse_readback_voltage("12.003A")
@@ -267,6 +269,7 @@ def test_parse_voltage_setpoint_rejects_missing_value():
 # ---------------------------------------------------------------------------
 # Group response splitting
 # ---------------------------------------------------------------------------
+
 
 def test_split_group_response_ok():
     blob = "12.003V\r\n0.250A\r\n5.001V\r\n0.100A\r\n"

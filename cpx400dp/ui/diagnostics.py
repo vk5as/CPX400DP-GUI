@@ -16,15 +16,29 @@ from cpx400dp.ui.themes import LIGHT, Palette
 from cpx400dp.worker import Cpx400dpWorker
 
 ESR_BITS = {
-    7: "Power On", 6: "User Request", 5: "Command Error", 4: "Execution Error",
-    3: "Verify Timeout", 2: "Query Error", 1: "(unused)", 0: "Operation Complete",
+    7: "Power On",
+    6: "User Request",
+    5: "Command Error",
+    4: "Execution Error",
+    3: "Verify Timeout",
+    2: "Query Error",
+    1: "(unused)",
+    0: "Operation Complete",
 }
 STB_BITS = {
-    6: "RQS/MSS", 5: "ESB", 4: "MAV", 1: "LIM2", 0: "LIM1",
+    6: "RQS/MSS",
+    5: "ESB",
+    4: "MAV",
+    1: "LIM2",
+    0: "LIM1",
 }
 LSR_BITS = {
-    6: "Hard trip (front panel / AC cycle to clear)", 4: "Unregulated (power limit)",
-    3: "Over-current trip", 2: "Over-voltage trip", 1: "Constant Current", 0: "Constant Voltage",
+    6: "Hard trip (front panel / AC cycle to clear)",
+    4: "Unregulated (power limit)",
+    3: "Over-current trip",
+    2: "Over-voltage trip",
+    1: "Constant Current",
+    0: "Constant Voltage",
 }
 
 
@@ -81,9 +95,9 @@ class DiagnosticsPanel(ttk.Frame):
         entry.pack(side="left", fill="x", expand=True)
         entry.bind("<Return>", lambda _e: self._send_console())
         ttk.Button(entry_row, text="Send", command=self._send_console).pack(side="left", padx=(4, 0))
-        ttk.Label(console_frame,
-                  text="Any command from the manual, e.g. V1?, OP1 1, V1O?;I1O?, *IDN?").pack(
-            side="top", anchor="w", pady=(2, 4))
+        ttk.Label(console_frame, text="Any command from the manual, e.g. V1?, OP1 1, V1O?;I1O?, *IDN?").pack(
+            side="top", anchor="w", pady=(2, 4)
+        )
 
         self.log = scrolledtext.ScrolledText(console_frame, height=12, state="disabled", font=("TkFixedFont",))
         self.log.pack(side="top", fill="both", expand=True)
@@ -103,8 +117,9 @@ class DiagnosticsPanel(ttk.Frame):
 
     def apply_theme(self, palette: Palette) -> None:
         self._palette = palette
-        self.log.configure(background=palette.field_bg, foreground=palette.foreground,
-                            insertbackground=palette.foreground)
+        self.log.configure(
+            background=palette.field_bg, foreground=palette.foreground, insertbackground=palette.foreground
+        )
 
     # -- updates from worker events -------------------------------------
 
@@ -115,10 +130,12 @@ class DiagnosticsPanel(ttk.Frame):
             self.reg_labels["query_error"].configure(text=str(evt.query_error))
         if evt.event_status is not None:
             self.reg_labels["event_status"].configure(
-                text=f"{evt.event_status} ({_decode_bits(evt.event_status, ESR_BITS)})")
+                text=f"{evt.event_status} ({_decode_bits(evt.event_status, ESR_BITS)})"
+            )
         if evt.status_byte is not None:
             self.reg_labels["status_byte"].configure(
-                text=f"{evt.status_byte} ({_decode_bits(evt.status_byte, STB_BITS)})")
+                text=f"{evt.status_byte} ({_decode_bits(evt.status_byte, STB_BITS)})"
+            )
         if evt.address is not None:
             self.reg_labels["address"].configure(text=str(evt.address))
 

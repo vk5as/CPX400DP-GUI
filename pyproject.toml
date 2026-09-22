@@ -33,7 +33,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=7"]
+dev = [
+    "pytest>=7",
+    "black>=24",
+    "ruff>=0.6",
+    "mypy>=1.10",
+    "bandit>=1.7",
+]
 
 [project.urls]
 Homepage = "https://github.com/vk5as/CPX400DP-GUI"
@@ -46,3 +52,7 @@ cpx400dp-cli = "cpx400dp.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["cpx400dp*"]
+
+[tool.black]
+line-length = 120
+target-version = ["py310"]

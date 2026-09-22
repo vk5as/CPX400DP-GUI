@@ -125,12 +125,14 @@ class MainWindow:
         view_menu.add_cascade(label="Theme", menu=theme_menu)
         self.theme_var = tk.StringVar(value=self.config.theme)
         for name in THEME_NAMES:
-            theme_menu.add_radiobutton(label=name, value=name, variable=self.theme_var,
-                                        command=lambda n=name: self._apply_theme(n))
+            theme_menu.add_radiobutton(
+                label=name, value=name, variable=self.theme_var, command=lambda n=name: self._apply_theme(n)
+            )
 
         self.compact_var = tk.BooleanVar(value=self.config.compact_mode)
-        view_menu.add_checkbutton(label="Compact Mode", variable=self.compact_var,
-                                   command=lambda: self._apply_compact(self.compact_var.get()))
+        view_menu.add_checkbutton(
+            label="Compact Mode", variable=self.compact_var, command=lambda: self._apply_compact(self.compact_var.get())
+        )
 
     def _apply_theme(self, name: str) -> None:
         apply_theme(self.root, name)
@@ -184,8 +186,11 @@ class MainWindow:
     # -- connection bar ---------------------------------------------------
 
     def _on_connect_clicked(self) -> None:
-        if self._connection_state in (ConnectionState.CONNECTED, ConnectionState.RECONNECTING,
-                                       ConnectionState.CONNECTING):
+        if self._connection_state in (
+            ConnectionState.CONNECTED,
+            ConnectionState.RECONNECTING,
+            ConnectionState.CONNECTING,
+        ):
             self.worker.disconnect()
             return
         host = self.host_var.get().strip()
@@ -232,8 +237,7 @@ class MainWindow:
             self.channel_panels[evt.channel].apply_reading(evt.reading)
             self._latest[evt.channel]["v"] = evt.reading.voltage
             self._latest[evt.channel]["i"] = evt.reading.current
-            self.history.add(self._latest[1]["v"], self._latest[1]["i"],
-                              self._latest[2]["v"], self._latest[2]["i"])
+            self.history.add(self._latest[1]["v"], self._latest[1]["i"], self._latest[2]["v"], self._latest[2]["i"])
             if self.diagnostics_panel is not None:
                 self.diagnostics_panel.apply_limit_status(evt.channel, evt.reading.limit_status.raw)
         elif isinstance(evt, ChannelSettingsUpdated):

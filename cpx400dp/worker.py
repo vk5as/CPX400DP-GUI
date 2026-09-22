@@ -96,8 +96,9 @@ class Cpx400dpWorker(threading.Thread):
 
     # -- public API, callable from the GUI thread -------------------------
 
-    def submit(self, action: Callable[["Cpx400dpWorker"], None], *, coalesce_key: str | None = None,
-               label: str = "") -> None:
+    def submit(
+        self, action: Callable[["Cpx400dpWorker"], None], *, coalesce_key: str | None = None, label: str = ""
+    ) -> None:
         """Enqueue a user-initiated action."""
         seq = next(self._seq)
         if coalesce_key is not None:
@@ -115,11 +116,13 @@ class Cpx400dpWorker(threading.Thread):
         def _apply(w: "Cpx400dpWorker") -> None:
             w._poll_hz = hz
             w._poll_interval_s = 1.0 / hz if hz > 0 else 0.5
+
         self.submit(_apply, label=f"set_poll_hz {hz}")
 
     def set_poll_limit_status(self, enabled: bool) -> None:
         def _apply(w: "Cpx400dpWorker") -> None:
             w._poll_limit_status = enabled
+
         self.submit(_apply, label=f"set_poll_limit_status {enabled}")
 
     def clear_latched_trips(self, channel: int | None = None) -> None:
@@ -127,12 +130,14 @@ class Cpx400dpWorker(threading.Thread):
             channels = [channel] if channel else [1, 2]
             for ch in channels:
                 w._latched[ch] = {"ov": False, "oc": False, "hard": False}
+
         self.submit(_apply, label="clear_latched_trips")
 
     def send_raw(self, command: str) -> None:
         """Send an arbitrary command/group typed into the diagnostics
         console. If it looks like a query (ends with '?' on any of its
         ';'-separated units), read back that many responses."""
+
         def _apply(w: "Cpx400dpWorker") -> None:
             units = [u.strip() for u in command.split(";") if u.strip()]
             expected = sum(1 for u in units if u.endswith("?"))
@@ -143,6 +148,7 @@ class Cpx400dpWorker(threading.Thread):
                 w._on_transport_error(exc)
                 return
             w._post(RawReply(request=command, reply=reply))
+
         self.submit(_apply, label=f"raw {command}")
 
     def shutdown(self, timeout: float = 3.0) -> None:
@@ -157,6 +163,7 @@ class Cpx400dpWorker(threading.Thread):
             w._send(proto.set_voltage(channel, volts, verify))
             w._post(CommandAcked(request=f"V{channel}={volts}"))
             w._refresh_channel_settings(channel)
+
         self.submit(_apply, coalesce_key=f"set_v{channel}", label=f"set_voltage {channel} {volts}")
 
     def set_current(self, channel: int, amps: float) -> None:
@@ -164,51 +171,67 @@ class Cpx400dpWorker(threading.Thread):
             w._send(proto.set_current(channel, amps))
             w._post(CommandAcked(request=f"I{channel}={amps}"))
             w._refresh_channel_settings(channel)
+
         self.submit(_apply, coalesce_key=f"set_i{channel}", label=f"set_current {channel} {amps}")
 
     def set_ovp(self, channel: int, volts: float) -> None:
         def _apply(w: "Cpx400dpWorker") -> None:
             w._send(proto.set_ovp(channel, volts))
             w._refresh_channel_settings(channel)
+
         self.submit(_apply, coalesce_key=f"set_ovp{channel}", label=f"set_ovp {channel} {volts}")
 
     def set_ocp(self, channel: int, amps: float) -> None:
         def _apply(w: "Cpx400dpWorker") -> None:
             w._send(proto.set_ocp(channel, amps))
             w._refresh_channel_settings(channel)
+
         self.submit(_apply, coalesce_key=f"set_ocp{channel}", label=f"set_ocp {channel} {amps}")
 
     def set_delta_v(self, channel: int, volts: float) -> None:
         def _apply(w: "Cpx400dpWorker") -> None:
             w._send(proto.set_delta_v(channel, volts))
             w._refresh_channel_settings(channel)
+
         self.submit(_apply, coalesce_key=f"set_dv{channel}", label=f"set_delta_v {channel} {volts}")
 
     def set_delta_i(self, channel: int, amps: float) -> None:
         def _apply(w: "Cpx400dpWorker") -> None:
             w._send(proto.set_delta_i(channel, amps))
             w._refresh_channel_settings(channel)
+
         self.submit(_apply, coalesce_key=f"set_di{channel}", label=f"set_delta_i {channel} {amps}")
 
     def inc_voltage(self, channel: int) -> None:
-        self.submit(lambda w: (w._send(proto.inc_voltage(channel)), w._refresh_channel_settings(channel)),
-                    label=f"inc_voltage {channel}")
+        self.submit(
+            lambda w: (w._send(proto.inc_voltage(channel)), w._refresh_channel_settings(channel)),
+            label=f"inc_voltage {channel}",
+        )
 
     def dec_voltage(self, channel: int) -> None:
-        self.submit(lambda w: (w._send(proto.dec_voltage(channel)), w._refresh_channel_settings(channel)),
-                    label=f"dec_voltage {channel}")
+        self.submit(
+            lambda w: (w._send(proto.dec_voltage(channel)), w._refresh_channel_settings(channel)),
+            label=f"dec_voltage {channel}",
+        )
 
     def inc_current(self, channel: int) -> None:
-        self.submit(lambda w: (w._send(proto.inc_current(channel)), w._refresh_channel_settings(channel)),
-                    label=f"inc_current {channel}")
+        self.submit(
+            lambda w: (w._send(proto.inc_current(channel)), w._refresh_channel_settings(channel)),
+            label=f"inc_current {channel}",
+        )
 
     def dec_current(self, channel: int) -> None:
-        self.submit(lambda w: (w._send(proto.dec_current(channel)), w._refresh_channel_settings(channel)),
-                    label=f"dec_current {channel}")
+        self.submit(
+            lambda w: (w._send(proto.dec_current(channel)), w._refresh_channel_settings(channel)),
+            label=f"dec_current {channel}",
+        )
 
     def set_output(self, channel: int, on: bool) -> None:
-        self.submit(lambda w: w._send(proto.set_output(channel, on)),
-                    coalesce_key=f"set_op{channel}", label=f"set_output {channel} {on}")
+        self.submit(
+            lambda w: w._send(proto.set_output(channel, on)),
+            coalesce_key=f"set_op{channel}",
+            label=f"set_output {channel} {on}",
+        )
 
     def set_output_all(self, on: bool) -> None:
         self.submit(lambda w: w._send(proto.set_output_all(on)), label=f"set_output_all {on}")
@@ -220,18 +243,21 @@ class Cpx400dpWorker(threading.Thread):
         def _apply(w: "Cpx400dpWorker") -> None:
             w._send(proto.recall_setup(channel, store))
             w._refresh_channel_settings(channel)
+
         self.submit(_apply, label=f"recall_setup {channel} {store}")
 
     def set_config(self, mode: proto.ConfigMode) -> None:
         def _apply(w: "Cpx400dpWorker") -> None:
             w._send(proto.set_config(mode))
             w._refresh_global_settings()
+
         self.submit(_apply, label=f"set_config {mode}")
 
     def set_ratio(self, percent: float) -> None:
         def _apply(w: "Cpx400dpWorker") -> None:
             w._send(proto.set_ratio(percent))
             w._refresh_global_settings()
+
         self.submit(_apply, coalesce_key="set_ratio", label=f"set_ratio {percent}")
 
     def trip_reset(self) -> None:
@@ -239,6 +265,7 @@ class Cpx400dpWorker(threading.Thread):
             w._send(proto.trip_reset())
             for ch in (1, 2):
                 w._latched[ch] = {"ov": False, "oc": False, "hard": False}
+
         self.submit(_apply, label="trip_reset")
 
     def go_local(self) -> None:
@@ -248,18 +275,21 @@ class Cpx400dpWorker(threading.Thread):
         def _apply(w: "Cpx400dpWorker") -> None:
             reply = w._query(proto.interface_lock())
             w._post(InterfaceLockChanged(owned_by_us=proto.parse_int(reply)))
+
         self.submit(_apply, label="interface_lock")
 
     def interface_unlock(self) -> None:
         def _apply(w: "Cpx400dpWorker") -> None:
             w._query(proto.interface_unlock())
             w._post(InterfaceLockChanged(owned_by_us=0))
+
         self.submit(_apply, label="interface_unlock")
 
     def reset_instrument(self) -> None:
         def _apply(w: "Cpx400dpWorker") -> None:
             w._send(proto.reset())
             w._refresh_all_settings()
+
         self.submit(_apply, label="reset_instrument")
 
     def refresh_diagnostics(self) -> None:
@@ -269,8 +299,12 @@ class Cpx400dpWorker(threading.Thread):
             esr = proto.parse_int(w._query(proto.query_event_status()))
             stb = proto.parse_int(w._query(proto.query_status_byte()))
             addr = proto.parse_int(w._query(proto.query_address()))
-            w._post(DiagnosticsUpdated(execution_error=eer, query_error=qer,
-                                        event_status=esr, status_byte=stb, address=addr))
+            w._post(
+                DiagnosticsUpdated(
+                    execution_error=eer, query_error=qer, event_status=esr, status_byte=stb, address=addr
+                )
+            )
+
         self.submit(_apply, label="refresh_diagnostics")
 
     # -- thread body --------------------------------------------------------
@@ -323,9 +357,12 @@ class Cpx400dpWorker(threading.Thread):
 
     def _poll_once(self) -> None:
         cmds = [
-            proto.query_readback_voltage(1), proto.query_readback_current(1),
-            proto.query_readback_voltage(2), proto.query_readback_current(2),
-            proto.query_output(1), proto.query_output(2),
+            proto.query_readback_voltage(1),
+            proto.query_readback_current(1),
+            proto.query_readback_voltage(2),
+            proto.query_readback_current(2),
+            proto.query_output(1),
+            proto.query_output(2),
         ]
         if self._poll_limit_status:
             cmds += [proto.query_limit_status(1), proto.query_limit_status(2)]
@@ -345,18 +382,34 @@ class Cpx400dpWorker(threading.Thread):
         self._update_latches(1, ls1)
         self._update_latches(2, ls2)
 
-        self._post(ChannelReadingUpdated(1, ChannelReading(
-            voltage=v1, current=i1, output_on=op1, limit_status=ls1,
-            latched_over_voltage=self._latched[1]["ov"],
-            latched_over_current=self._latched[1]["oc"],
-            latched_hard_trip=self._latched[1]["hard"],
-        )))
-        self._post(ChannelReadingUpdated(2, ChannelReading(
-            voltage=v2, current=i2, output_on=op2, limit_status=ls2,
-            latched_over_voltage=self._latched[2]["ov"],
-            latched_over_current=self._latched[2]["oc"],
-            latched_hard_trip=self._latched[2]["hard"],
-        )))
+        self._post(
+            ChannelReadingUpdated(
+                1,
+                ChannelReading(
+                    voltage=v1,
+                    current=i1,
+                    output_on=op1,
+                    limit_status=ls1,
+                    latched_over_voltage=self._latched[1]["ov"],
+                    latched_over_current=self._latched[1]["oc"],
+                    latched_hard_trip=self._latched[1]["hard"],
+                ),
+            )
+        )
+        self._post(
+            ChannelReadingUpdated(
+                2,
+                ChannelReading(
+                    voltage=v2,
+                    current=i2,
+                    output_on=op2,
+                    limit_status=ls2,
+                    latched_over_voltage=self._latched[2]["ov"],
+                    latched_over_current=self._latched[2]["oc"],
+                    latched_hard_trip=self._latched[2]["hard"],
+                ),
+            )
+        )
 
     def _update_latches(self, channel: int, ls: LimitStatus) -> None:
         latch = self._latched[channel]
@@ -374,15 +427,26 @@ class Cpx400dpWorker(threading.Thread):
         ocp = proto.parse_ocp(self._query(proto.query_ocp(channel)))
         dv = proto.parse_delta_v(self._query(proto.query_delta_v(channel)))
         di = proto.parse_delta_i(self._query(proto.query_delta_i(channel)))
-        self._post(ChannelSettingsUpdated(channel, ChannelSettings(
-            voltage_setpoint=v, current_setpoint=i, ovp=ovp, ocp=ocp, delta_v=dv, delta_i=di,
-        )))
+        self._post(
+            ChannelSettingsUpdated(
+                channel,
+                ChannelSettings(
+                    voltage_setpoint=v,
+                    current_setpoint=i,
+                    ovp=ovp,
+                    ocp=ocp,
+                    delta_v=dv,
+                    delta_i=di,
+                ),
+            )
+        )
 
     def _refresh_global_settings(self) -> None:
         cfg = proto.parse_int(self._query(proto.query_config()))
         ratio = proto.parse_float(self._query(proto.query_ratio()))
-        self._post(GlobalSettingsUpdated(config_independent=(cfg == proto.ConfigMode.INDEPENDENT.value),
-                                          ratio_percent=ratio))
+        self._post(
+            GlobalSettingsUpdated(config_independent=(cfg == proto.ConfigMode.INDEPENDENT.value), ratio_percent=ratio)
+        )
 
     def _refresh_all_settings(self) -> None:
         self._refresh_channel_settings(1)
@@ -424,8 +488,12 @@ class Cpx400dpWorker(threading.Thread):
         if self._consecutive_failures >= CONSECUTIVE_FAILURES_BEFORE_RECONNECT:
             self._enter_reconnect(str(exc))
         else:
-            self._post(ErrorOccurred(message=f"transient error ({self._consecutive_failures}/"
-                                              f"{CONSECUTIVE_FAILURES_BEFORE_RECONNECT}): {exc}"))
+            self._post(
+                ErrorOccurred(
+                    message=f"transient error ({self._consecutive_failures}/"
+                    f"{CONSECUTIVE_FAILURES_BEFORE_RECONNECT}): {exc}"
+                )
+            )
 
     def _enter_reconnect(self, detail: str) -> None:
         if self._transport is not None:

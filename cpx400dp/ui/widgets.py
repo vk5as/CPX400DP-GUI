@@ -14,9 +14,18 @@ class NumericEntry(ttk.Frame):
     than silently clamping, and calls `on_commit(value)` only when the
     value is valid and has actually changed."""
 
-    def __init__(self, parent, label: str, unit: str, minimum: float, maximum: float,
-                 initial: float = 0.0, decimals: int = 3, on_commit: Callable[[float], None] | None = None,
-                 width: int = 8):
+    def __init__(
+        self,
+        parent,
+        label: str,
+        unit: str,
+        minimum: float,
+        maximum: float,
+        initial: float = 0.0,
+        decimals: int = 3,
+        on_commit: Callable[[float], None] | None = None,
+        width: int = 8,
+    ):
         super().__init__(parent)
         self.minimum = minimum
         self.maximum = maximum
@@ -83,8 +92,7 @@ class Led(tk.Canvas):
     }
 
     def __init__(self, parent, size: int = 14, background: str | None = None):
-        super().__init__(parent, width=size, height=size, highlightthickness=0,
-                          background=background or "#f0f0f0")
+        super().__init__(parent, width=size, height=size, highlightthickness=0, background=background or "#f0f0f0")
         self._size = size
         self._oval = self.create_oval(1, 1, size - 1, size - 1, fill=self._COLORS["off"], outline="#222222")
 

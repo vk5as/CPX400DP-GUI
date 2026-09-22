@@ -103,8 +103,10 @@ def test_set_voltage_reflected_in_settings_and_readback(sim, worker):
     assert evt.settings.voltage_setpoint == 12.0
 
     w.set_current(1, 2.0)
-    drain_until(events, lambda e: isinstance(e, ChannelSettingsUpdated) and e.channel == 1
-                and e.settings.current_setpoint == 2.0)
+    drain_until(
+        events,
+        lambda e: isinstance(e, ChannelSettingsUpdated) and e.channel == 1 and e.settings.current_setpoint == 2.0,
+    )
 
     w.set_output(1, True)
     evt = drain_until(events, lambda e: isinstance(e, ChannelReadingUpdated) and e.channel == 1 and e.reading.output_on)
@@ -130,8 +132,12 @@ def test_coalescing_drops_stale_setpoints(sim, worker):
     for i in range(n):
         w.set_voltage(1, float(i))
 
-    evt = drain_until(events, lambda e: isinstance(e, ChannelSettingsUpdated) and e.channel == 1
-                       and e.settings.voltage_setpoint == float(n - 1))
+    evt = drain_until(
+        events,
+        lambda e: isinstance(e, ChannelSettingsUpdated)
+        and e.channel == 1
+        and e.settings.voltage_setpoint == float(n - 1),
+    )
     assert evt.settings.voltage_setpoint == n - 1
 
     # Count how many ChannelSettingsUpdated for channel 1 arrive over a
@@ -162,10 +168,12 @@ def test_reconnect_after_drop(sim, worker):
     # exists to avoid.
     w.submit(lambda w: w._transport.close(), label="test: force close")
 
-    drain_until(events, lambda e: isinstance(e, ConnectionStateChanged) and e.state == ConnectionState.RECONNECTING,
-                timeout=5.0)
-    drain_until(events, lambda e: isinstance(e, ConnectionStateChanged) and e.state == ConnectionState.CONNECTED,
-                timeout=10.0)
+    drain_until(
+        events, lambda e: isinstance(e, ConnectionStateChanged) and e.state == ConnectionState.RECONNECTING, timeout=5.0
+    )
+    drain_until(
+        events, lambda e: isinstance(e, ConnectionStateChanged) and e.state == ConnectionState.CONNECTED, timeout=10.0
+    )
 
 
 def test_trip_reset_clears_latched_trip(sim, worker):
@@ -177,21 +185,32 @@ def test_trip_reset_clears_latched_trip(sim, worker):
     # to 0V (CC at 0A) before voltage ever reaches the OVP threshold — so a
     # generous current limit must be set first for the OVP trip to fire.
     w.set_current(1, 5.0)
-    drain_until(events, lambda e: isinstance(e, ChannelSettingsUpdated) and e.channel == 1 and e.settings.current_setpoint == 5.0)
+    drain_until(
+        events,
+        lambda e: isinstance(e, ChannelSettingsUpdated) and e.channel == 1 and e.settings.current_setpoint == 5.0,
+    )
     w.set_ovp(1, 2.0)  # low OVP so a 12V setpoint trips it
     drain_until(events, lambda e: isinstance(e, ChannelSettingsUpdated) and e.channel == 1 and e.settings.ovp == 2.0)
     w.set_voltage(1, 12.0)
-    drain_until(events, lambda e: isinstance(e, ChannelSettingsUpdated) and e.channel == 1
-                and e.settings.voltage_setpoint == 12.0)
+    drain_until(
+        events,
+        lambda e: isinstance(e, ChannelSettingsUpdated) and e.channel == 1 and e.settings.voltage_setpoint == 12.0,
+    )
     w.set_output(1, True)
 
-    evt = drain_until(events, lambda e: isinstance(e, ChannelReadingUpdated) and e.channel == 1
-                       and e.reading.latched_over_voltage, timeout=5.0)
+    evt = drain_until(
+        events,
+        lambda e: isinstance(e, ChannelReadingUpdated) and e.channel == 1 and e.reading.latched_over_voltage,
+        timeout=5.0,
+    )
     assert evt.reading.latched_over_voltage
 
     w.trip_reset()
-    evt = drain_until(events, lambda e: isinstance(e, ChannelReadingUpdated) and e.channel == 1
-                       and not e.reading.latched_over_voltage, timeout=5.0)
+    evt = drain_until(
+        events,
+        lambda e: isinstance(e, ChannelReadingUpdated) and e.channel == 1 and not e.reading.latched_over_voltage,
+        timeout=5.0,
+    )
     assert not evt.reading.latched_over_voltage
 
 

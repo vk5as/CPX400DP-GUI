@@ -60,7 +60,12 @@ class ChannelPanel(ttk.LabelFrame):
             self._mode_leds[key] = led
 
         self.voltage_entry = NumericEntry(
-            self, "Set V", "V", VOLTAGE_MIN, VOLTAGE_MAX, decimals=3,
+            self,
+            "Set V",
+            "V",
+            VOLTAGE_MIN,
+            VOLTAGE_MAX,
+            decimals=3,
             on_commit=lambda v: self._set_voltage(v),
         )
         self.voltage_entry.grid(row=2, column=0, sticky="w", pady=2)
@@ -73,7 +78,12 @@ class ChannelPanel(ttk.LabelFrame):
         ttk.Button(self.v_btns, text="▼", width=2, command=lambda: self.worker.dec_voltage(ch)).pack(side="left")
 
         self.current_entry = NumericEntry(
-            self, "Set I", "A", CURRENT_MIN, CURRENT_MAX, decimals=3,
+            self,
+            "Set I",
+            "A",
+            CURRENT_MIN,
+            CURRENT_MAX,
+            decimals=3,
             on_commit=lambda a: self.worker.set_current(ch, a),
         )
         self.current_entry.grid(row=3, column=0, sticky="w", pady=2)
@@ -85,26 +95,50 @@ class ChannelPanel(ttk.LabelFrame):
         self.delta_row = ttk.Frame(self)
         self.delta_row.grid(row=4, column=0, columnspan=3, sticky="w", pady=2)
         self.delta_v_entry = NumericEntry(
-            self.delta_row, "ΔV", "V", 0.01, VOLTAGE_MAX, decimals=3,
-            on_commit=lambda v: self.worker.set_delta_v(ch, v), width=6,
+            self.delta_row,
+            "ΔV",
+            "V",
+            0.01,
+            VOLTAGE_MAX,
+            decimals=3,
+            on_commit=lambda v: self.worker.set_delta_v(ch, v),
+            width=6,
         )
         self.delta_v_entry.pack(side="left", padx=(0, 10))
         self.delta_i_entry = NumericEntry(
-            self.delta_row, "ΔI", "A", 0.001, CURRENT_MAX, decimals=3,
-            on_commit=lambda a: self.worker.set_delta_i(ch, a), width=6,
+            self.delta_row,
+            "ΔI",
+            "A",
+            0.001,
+            CURRENT_MAX,
+            decimals=3,
+            on_commit=lambda a: self.worker.set_delta_i(ch, a),
+            width=6,
         )
         self.delta_i_entry.pack(side="left")
 
         self.prot_row = ttk.Frame(self)
         self.prot_row.grid(row=5, column=0, columnspan=3, sticky="w", pady=2)
         self.ovp_entry = NumericEntry(
-            self.prot_row, "OVP", "V", OVP_MIN, OVP_MAX, decimals=1,
-            on_commit=lambda v: self.worker.set_ovp(ch, v), width=6,
+            self.prot_row,
+            "OVP",
+            "V",
+            OVP_MIN,
+            OVP_MAX,
+            decimals=1,
+            on_commit=lambda v: self.worker.set_ovp(ch, v),
+            width=6,
         )
         self.ovp_entry.pack(side="left", padx=(0, 10))
         self.ocp_entry = NumericEntry(
-            self.prot_row, "OCP", "A", OCP_MIN, OCP_MAX, decimals=2,
-            on_commit=lambda a: self.worker.set_ocp(ch, a), width=6,
+            self.prot_row,
+            "OCP",
+            "A",
+            OCP_MIN,
+            OCP_MAX,
+            decimals=2,
+            on_commit=lambda a: self.worker.set_ocp(ch, a),
+            width=6,
         )
         self.ocp_entry.pack(side="left")
 
@@ -112,7 +146,10 @@ class ChannelPanel(ttk.LabelFrame):
         out_row.grid(row=6, column=0, columnspan=3, sticky="w", pady=(6, 2))
         self.output_var = tk.BooleanVar(value=False)
         self.output_btn = ttk.Checkbutton(
-            out_row, text="OUTPUT ON", variable=self.output_var, style="Toolbutton",
+            out_row,
+            text="OUTPUT ON",
+            variable=self.output_var,
+            style="Toolbutton",
             command=self._toggle_output,
         )
         self.output_btn.pack(side="left")
@@ -133,8 +170,14 @@ class ChannelPanel(ttk.LabelFrame):
         # Set I, and the output switch — the bare minimum to monitor and
         # drive a channel.
         self._compact_grid_widgets = (
-            self.mode_row, self.verify_check, self.v_btns, self.i_btns,
-            self.delta_row, self.prot_row, self.store_row, self.envelope_warning,
+            self.mode_row,
+            self.verify_check,
+            self.v_btns,
+            self.i_btns,
+            self.delta_row,
+            self.prot_row,
+            self.store_row,
+            self.envelope_warning,
         )
 
     # -- user actions --------------------------------------------------
@@ -160,7 +203,7 @@ class ChannelPanel(ttk.LabelFrame):
         if v * i > POWER_ENVELOPE_W:
             self.envelope_warning.configure(
                 text=f"⚠ {v:.1f}V × {i:.2f}A = {v * i:.0f}W exceeds the "
-                     f"{POWER_ENVELOPE_W:.0f}W envelope — output will be unregulated"
+                f"{POWER_ENVELOPE_W:.0f}W envelope — output will be unregulated"
             )
         else:
             self.envelope_warning.configure(text="")

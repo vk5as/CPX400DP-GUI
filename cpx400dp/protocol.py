@@ -67,6 +67,7 @@ def _strip_rmt(line: str) -> str:
 # Command builders — per-channel
 # ---------------------------------------------------------------------------
 
+
 def set_voltage(channel: int, volts: float, verify: bool = False) -> str:
     n = _channel(channel)
     suffix = "V" if verify else ""
@@ -177,6 +178,7 @@ def query_limit_enable(channel: int) -> str:
 # Command builders — global
 # ---------------------------------------------------------------------------
 
+
 def set_output_all(on: bool) -> str:
     return f"OPALL {1 if on else 0}"
 
@@ -234,6 +236,7 @@ def query_address() -> str:
 # ---------------------------------------------------------------------------
 # Command builders — IEEE 488.2 common commands
 # ---------------------------------------------------------------------------
+
 
 def idn() -> str:
     return "*IDN?"
@@ -318,6 +321,7 @@ def group(*commands: str) -> str:
 # Response parsers
 # ---------------------------------------------------------------------------
 
+
 def _parse_nr2_after_prefix(line: str, prefixes: tuple[str, ...]) -> float:
     """Parse a reply of the form '<PREFIX><n> <value>' where PREFIX is one of
     the given case-insensitive prefixes, returning the trailing numeric
@@ -329,7 +333,7 @@ def _parse_nr2_after_prefix(line: str, prefixes: tuple[str, ...]) -> float:
     upper = s.upper()
     for prefix in prefixes:
         if upper.startswith(prefix):
-            rest = s[len(prefix):]
+            rest = s[len(prefix) :]
             # rest is now "<n> <value>" — skip the channel digit(s) and space
             rest = rest.lstrip()
             parts = rest.split(None, 1)
@@ -497,7 +501,5 @@ def split_group_response(blob: str, count: int) -> list[str]:
     """
     lines = [ln for ln in blob.split("\r\n") if ln != ""]
     if len(lines) != count:
-        raise ProtocolError(
-            f"expected {count} responses in group, got {len(lines)}: {lines!r}"
-        )
+        raise ProtocolError(f"expected {count} responses in group, got {len(lines)}: {lines!r}")
     return lines

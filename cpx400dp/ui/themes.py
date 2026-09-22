@@ -114,16 +114,26 @@ def _apply_palette(style: ttk.Style, root: tk.Tk, p: Palette) -> None:
 
 def _build_settings(p: Palette) -> dict:
     return {
-        ".": {"configure": {
-            "background": p.background, "foreground": p.foreground,
-            "fieldbackground": p.field_bg, "bordercolor": p.border,
-            "lightcolor": p.background, "darkcolor": p.background,
-            "troughcolor": p.trough, "arrowcolor": p.foreground,
-        }},
+        ".": {
+            "configure": {
+                "background": p.background,
+                "foreground": p.foreground,
+                "fieldbackground": p.field_bg,
+                "bordercolor": p.border,
+                "lightcolor": p.background,
+                "darkcolor": p.background,
+                "troughcolor": p.trough,
+                "arrowcolor": p.foreground,
+            }
+        },
         "TFrame": {"configure": {"background": p.background}},
-        "TLabelframe": {"configure": {
-            "background": p.background, "foreground": p.foreground, "bordercolor": p.border,
-        }},
+        "TLabelframe": {
+            "configure": {
+                "background": p.background,
+                "foreground": p.foreground,
+                "bordercolor": p.border,
+            }
+        },
         "TLabelframe.Label": {"configure": {"background": p.background, "foreground": p.foreground}},
         "TLabel": {"configure": {"background": p.background, "foreground": p.foreground}},
         "TButton": {
@@ -148,24 +158,35 @@ def _build_settings(p: Palette) -> dict:
             "configure": {"background": p.background, "foreground": p.foreground},
             "map": {"background": [("active", p.background)], "foreground": [("active", p.foreground)]},
         },
-        "TEntry": {"configure": {
-            "fieldbackground": p.field_bg, "foreground": p.foreground,
-            "bordercolor": p.border, "insertcolor": p.foreground,
-        }},
+        "TEntry": {
+            "configure": {
+                "fieldbackground": p.field_bg,
+                "foreground": p.foreground,
+                "bordercolor": p.border,
+                "insertcolor": p.foreground,
+            }
+        },
         "TCombobox": {
             "configure": {
-                "fieldbackground": p.field_bg, "foreground": p.foreground,
-                "background": p.surface, "arrowcolor": p.foreground,
+                "fieldbackground": p.field_bg,
+                "foreground": p.foreground,
+                "background": p.surface,
+                "arrowcolor": p.foreground,
             },
             "map": {
                 "fieldbackground": [("readonly", p.field_bg)],
                 "foreground": [("readonly", p.foreground)],
             },
         },
-        "TSpinbox": {"configure": {
-            "fieldbackground": p.field_bg, "foreground": p.foreground,
-            "background": p.surface, "bordercolor": p.border, "arrowcolor": p.foreground,
-        }},
+        "TSpinbox": {
+            "configure": {
+                "fieldbackground": p.field_bg,
+                "foreground": p.foreground,
+                "background": p.surface,
+                "bordercolor": p.border,
+                "arrowcolor": p.foreground,
+            }
+        },
         "TNotebook": {"configure": {"background": p.background, "bordercolor": p.border}},
         "TNotebook.Tab": {
             "configure": {"background": p.surface, "foreground": p.foreground},
@@ -175,8 +196,12 @@ def _build_settings(p: Palette) -> dict:
             },
         },
         "Horizontal.TScale": {"configure": {"background": p.background, "troughcolor": p.trough}},
-        "TScrollbar": {"configure": {
-            "background": p.surface, "troughcolor": p.trough,
-            "bordercolor": p.border, "arrowcolor": p.foreground,
-        }},
+        "TScrollbar": {
+            "configure": {
+                "background": p.surface,
+                "troughcolor": p.trough,
+                "bordercolor": p.border,
+                "arrowcolor": p.foreground,
+            }
+        },
     }

@@ -59,6 +59,7 @@ class ChannelReading:
 # updates its own view of DeviceState; the worker never touches Tk.
 # ---------------------------------------------------------------------------
 
+
 @dataclass(frozen=True)
 class ConnectionStateChanged:
     state: ConnectionState
@@ -129,16 +130,13 @@ class CommandAcked:
 # GUI-side aggregate view, rebuilt incrementally from the events above.
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class DeviceState:
     connection: ConnectionState = ConnectionState.DISCONNECTED
     identity: Identity | None = None
-    readings: dict[int, ChannelReading] = field(
-        default_factory=lambda: {1: ChannelReading(), 2: ChannelReading()}
-    )
-    settings: dict[int, ChannelSettings] = field(
-        default_factory=lambda: {1: ChannelSettings(), 2: ChannelSettings()}
-    )
+    readings: dict[int, ChannelReading] = field(default_factory=lambda: {1: ChannelReading(), 2: ChannelReading()})
+    settings: dict[int, ChannelSettings] = field(default_factory=lambda: {1: ChannelSettings(), 2: ChannelSettings()})
     config_independent: bool = True
     ratio_percent: float = 100.0
     interface_lock_owned: int = 0

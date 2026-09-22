@@ -31,18 +31,21 @@ class GlobalPanel(ttk.LabelFrame):
         mode_row = ttk.LabelFrame(self, text="Mode", padding=4)
         mode_row.grid(row=row, column=0, sticky="w", pady=4)
         self.mode_var = tk.StringVar(value="independent")
-        ttk.Radiobutton(mode_row, text="Independent", value="independent", variable=self.mode_var,
-                        command=self._apply_mode).pack(anchor="w")
-        ttk.Radiobutton(mode_row, text="Voltage Tracking", value="tracking", variable=self.mode_var,
-                        command=self._apply_mode).pack(anchor="w")
+        ttk.Radiobutton(
+            mode_row, text="Independent", value="independent", variable=self.mode_var, command=self._apply_mode
+        ).pack(anchor="w")
+        ttk.Radiobutton(
+            mode_row, text="Voltage Tracking", value="tracking", variable=self.mode_var, command=self._apply_mode
+        ).pack(anchor="w")
         row += 1
 
         ratio_row = ttk.Frame(self)
         ratio_row.grid(row=row, column=0, sticky="w", pady=2)
         ttk.Label(ratio_row, text="Ratio").pack(side="left")
         self.ratio_var = tk.DoubleVar(value=100.0)
-        ratio_scale = ttk.Scale(ratio_row, from_=0, to=100, variable=self.ratio_var,
-                                 command=lambda _v: self._apply_ratio(), length=120)
+        ratio_scale = ttk.Scale(
+            ratio_row, from_=0, to=100, variable=self.ratio_var, command=lambda _v: self._apply_ratio(), length=120
+        )
         ratio_scale.pack(side="left", padx=4)
         self.ratio_label = ttk.Label(ratio_row, text="100%")
         self.ratio_label.pack(side="left")
@@ -67,8 +70,15 @@ class GlobalPanel(ttk.LabelFrame):
         poll_row.grid(row=row, column=0, sticky="w", pady=4)
         ttk.Label(poll_row, text="Poll rate").pack(side="left")
         self.poll_var = tk.DoubleVar(value=2.0)
-        poll_spin = ttk.Spinbox(poll_row, from_=0.5, to=4.0, increment=0.5, textvariable=self.poll_var, width=5,
-                                 command=lambda: self.worker.set_poll_hz(self.poll_var.get()))
+        poll_spin = ttk.Spinbox(
+            poll_row,
+            from_=0.5,
+            to=4.0,
+            increment=0.5,
+            textvariable=self.poll_var,
+            width=5,
+            command=lambda: self.worker.set_poll_hz(self.poll_var.get()),
+        )
         poll_spin.pack(side="left", padx=4)
         ttk.Label(poll_row, text="Hz").pack(side="left")
         row += 1
