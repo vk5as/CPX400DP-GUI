@@ -120,13 +120,31 @@ against `tools/fake_cpx.py` over loopback TCP.
 ## Code quality
 
 ```bash
-.venv/bin/black cpx400dp/ tools/ tests/         # formatting
-.venv/bin/ruff check cpx400dp/ tools/ tests/    # linting
-.venv/bin/mypy cpx400dp/ tools/ tests/          # type checking
-.venv/bin/bandit -c pyproject.toml -r cpx400dp/ tools/   # security scan
+.venv/bin/black cpx400dp/ tools/ tests/ scripts/         # formatting
+.venv/bin/ruff check cpx400dp/ tools/ tests/ scripts/    # linting
+.venv/bin/mypy cpx400dp/ tools/ tests/ scripts/          # type checking
+.venv/bin/bandit -c pyproject.toml -r cpx400dp/ tools/ scripts/   # security scan
 ```
 
 All four are configured in `pyproject.toml` and run clean on the current codebase.
+
+## Releasing
+
+The **Release** workflow (`.github/workflows/release.yml`) is triggered manually from
+the Actions tab (Run workflow). It:
+
+1. Runs Black, Ruff, mypy, Bandit, and the full test suite.
+2. Builds the wheel and sdist (one universal wheel — this is a pure-Python package,
+   so there's no separate wheel per Python version or OS).
+3. Installs that exact wheel on real Windows runners across Python 3.11, 3.12, 3.13,
+   and 3.14, and verifies the GUI actually constructs and the CLI entry point works
+   on each.
+4. Only if all of that passes: creates a GitHub Release tagged from the version in
+   `pyproject.toml`, with the wheel and sdist attached as downloadable assets.
+
+Bump the `version` in `pyproject.toml` before triggering — the workflow reads it
+rather than taking it as an input, so it's the single source of truth for the tag.
+Publishing to PyPI is a separate, not-yet-automated step (see [Installation](#installation)).
 
 ## First connection to real hardware — safety checklist
 
