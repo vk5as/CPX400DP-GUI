@@ -90,6 +90,24 @@ flags for exercising failure paths:
 .venv/bin/python tools/fake_cpx.py --port 9221 --garbage         # occasional garbled replies
 ```
 
+## CLI
+
+`cpx400dp-cli` covers common operations from a shell script or terminal, without
+launching the GUI. It opens one connection, does one thing, and exits:
+
+```bash
+cpx400dp-cli --host 192.168.0.100 idn
+cpx400dp-cli --host 192.168.0.100 voltage 1 12.0      # set
+cpx400dp-cli --host 192.168.0.100 voltage 1           # get (omit the value to query)
+cpx400dp-cli --host 192.168.0.100 output 1 on
+cpx400dp-cli --host 192.168.0.100 read 1              # -> V=12.000 I=1.200
+cpx400dp-cli --host 192.168.0.100 status 1            # -> CV, or e.g. OC_TRIP
+cpx400dp-cli --host 192.168.0.100 raw "V1?;I1?"       # anything not covered above
+cpx400dp-cli --help                                   # full command list
+```
+
+Running from source (not installed): `.venv/bin/python -m cpx400dp.cli ...`.
+
 ## Tests
 
 ```bash
