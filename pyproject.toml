@@ -42,6 +42,7 @@ Issues = "https://github.com/vk5as/CPX400DP-GUI/issues"
 
 [project.scripts]
 cpx400dp-gui = "cpx400dp.app:main"
+cpx400dp-cli = "cpx400dp.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["cpx400dp*"]
