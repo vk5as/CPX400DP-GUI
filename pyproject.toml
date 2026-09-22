@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cpx400dp"
-version = "0.1.0"
+version = "0.1.1"
 description = "Tkinter GUI for remote-controlling an Aim-TTi CPX400DP power supply over LAN"
 readme = "README.md"
 license = "MIT"
