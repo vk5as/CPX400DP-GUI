@@ -24,6 +24,7 @@ from cpx400dp.model import (
     ChannelSettingsUpdated,
     ConnectionState,
     ConnectionStateChanged,
+    ErrorOccurred,
     IdentityReceived,
 )
 from cpx400dp.worker import Cpx400dpWorker
@@ -42,6 +43,19 @@ def sim():
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     yield port
+    server.shutdown()
+    server.server_close()
+
+
+@pytest.fixture
+def sim_with_state():
+    """Like `sim`, but also yields the InstrumentState so a test can
+    trigger fault injection mid-run."""
+    port = _free_port()
+    server = FakeCpxServer("127.0.0.1", port, drop_after=0, slow=0.0, garbage=False, noisy=False)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    yield port, server.state
     server.shutdown()
     server.server_close()
 
@@ -220,3 +234,43 @@ def test_disconnect_sets_disconnected_state(sim, worker):
     drain_until(events, lambda e: isinstance(e, ConnectionStateChanged) and e.state == ConnectionState.CONNECTED)
     w.disconnect()
     drain_until(events, lambda e: isinstance(e, ConnectionStateChanged) and e.state == ConnectionState.DISCONNECTED)
+
+
+def test_survives_response_desync_and_keeps_polling(sim_with_state, worker):
+    """Regression test for issue #1: a poll reply that's correctly framed
+    and correctly counted but has the wrong content (e.g. 'V1 28.00'
+    instead of '28.003V') used to raise an uncaught ProtocolError straight
+    out of the run() loop, silently killing the whole worker thread -- the
+    GUI just went unresponsive with no error shown. It must now: report
+    the problem, recover on its own, and keep the worker thread alive."""
+    sim_port, state = sim_with_state
+    w, events = worker
+    w.connect("127.0.0.1", sim_port)
+    drain_until(events, lambda e: isinstance(e, ConnectionStateChanged) and e.state == ConnectionState.CONNECTED)
+
+    state.corrupt_next_vout = True
+
+    drain_until(
+        events,
+        lambda e: isinstance(e, ErrorOccurred) and "desync" in e.message.lower(),
+        timeout=5.0,
+    )
+
+    assert w.is_alive(), "worker thread must not die from a malformed reply"
+
+    # Polling must have resumed on its own -- no reconnect needed, since
+    # draining the stray bytes was enough to resync.
+    drain_until(
+        events,
+        lambda e: isinstance(e, ChannelReadingUpdated) and e.channel == 1,
+        timeout=5.0,
+    )
+
+    # And the worker must still accept and execute new commands.
+    w.set_voltage(1, 5.0)
+    evt = drain_until(
+        events,
+        lambda e: isinstance(e, ChannelSettingsUpdated) and e.channel == 1,
+        timeout=5.0,
+    )
+    assert evt.settings.voltage_setpoint == 5.0

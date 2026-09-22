@@ -320,7 +320,7 @@ class Cpx400dpWorker(threading.Thread):
             try:
                 req = self._cmd_q.get(timeout=timeout)
             except queue.Empty:
-                self._maybe_poll()
+                self._safe_poll()
                 continue
 
             if self._stop_evt.is_set():
@@ -336,10 +336,22 @@ class Cpx400dpWorker(threading.Thread):
             except Exception as exc:  # noqa: BLE001 — surface anything unexpected, keep the thread alive
                 self._post(ErrorOccurred(message=f"{req.label or 'command'} failed: {exc}"))
 
-            self._maybe_poll()
+            self._safe_poll()
 
         if self._transport is not None:
             self._transport.close()
+
+    def _safe_poll(self) -> None:
+        """_maybe_poll(), but nothing it does is allowed to escape and kill
+        this thread. _maybe_poll() already handles TransportError itself
+        (backoff/reconnect); this is a last-resort net for anything else --
+        a malformed-but-correctly-framed reply, an instrument quirk, a bug
+        we haven't seen yet -- so a single bad poll cycle degrades to a
+        logged error instead of silently ending the whole worker."""
+        try:
+            self._maybe_poll()
+        except Exception as exc:  # noqa: BLE001 — see docstring
+            self._post(ErrorOccurred(message=f"poll failed unexpectedly: {exc}"))
 
     def _time_until_next_poll(self) -> float | None:
         if self._state != ConnectionState.CONNECTED:
@@ -374,15 +386,25 @@ class Cpx400dpWorker(threading.Thread):
 
         blob = self._query_group(cmds)
 
-        v1 = proto.parse_readback_voltage(blob[0])
-        i1 = proto.parse_readback_current(blob[1])
-        v2 = proto.parse_readback_voltage(blob[2])
-        i2 = proto.parse_readback_current(blob[3])
-        op1 = proto.parse_bool01(blob[4])
-        op2 = proto.parse_bool01(blob[5])
+        try:
+            v1 = proto.parse_readback_voltage(blob[0])
+            i1 = proto.parse_readback_current(blob[1])
+            v2 = proto.parse_readback_voltage(blob[2])
+            i2 = proto.parse_readback_current(blob[3])
+            op1 = proto.parse_bool01(blob[4])
+            op2 = proto.parse_bool01(blob[5])
 
-        ls1 = proto.parse_limit_status(blob[6]) if self._poll_limit_status else LimitStatus(raw=0)
-        ls2 = proto.parse_limit_status(blob[7]) if self._poll_limit_status else LimitStatus(raw=0)
+            ls1 = proto.parse_limit_status(blob[6]) if self._poll_limit_status else LimitStatus(raw=0)
+            ls2 = proto.parse_limit_status(blob[7]) if self._poll_limit_status else LimitStatus(raw=0)
+        except proto.ProtocolError as exc:
+            # The group had the right number of responses (split_group_response
+            # already checked that) but their content doesn't match what each
+            # command should return -- the stream is misaligned even though
+            # framing looked fine. Treat it exactly like the count-mismatch
+            # case: drain whatever's left and let the reconnect path resync.
+            if self._transport is not None:
+                self._transport.drain()
+            raise TransportError(f"response desync (unexpected content): {exc}") from exc
 
         self._update_latches(1, ls1)
         self._update_latches(2, ls2)
@@ -537,7 +559,15 @@ class Cpx400dpWorker(threading.Thread):
     def _read(self, count: int) -> str:
         if self._transport is None:
             raise TransportError("not connected")
-        return self._transport.read_responses(count)
+        try:
+            return self._transport.read_responses(count)
+        except TransportError:
+            # A reply that arrives just after we gave up waiting for it
+            # would otherwise sit in the buffer and corrupt whatever the
+            # *next*, unrelated read expects. We're already abandoning this
+            # read, so there's nothing legitimate left to preserve.
+            self._transport.drain()
+            raise
 
     def _query(self, command: str) -> str:
         """Send one command that expects exactly one reply line and return

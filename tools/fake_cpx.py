@@ -112,6 +112,12 @@ class InstrumentState:
         self.lock_guard = threading.Lock()
         self.noisy = noisy
         self.address = 11
+        # Test hook: when True, the next V<n>O? reply is sent in the wrong
+        # format (V<n> <value> instead of <value>V) -- correctly framed and
+        # correctly counted, just wrong content. Reproduces a real desync
+        # bug report (issue #1) where a stray late reply from an unrelated
+        # query bled into the poll loop's response stream.
+        self.corrupt_next_vout = False
 
     def set_error(self, code: int) -> None:
         self.eer = code
@@ -285,6 +291,9 @@ class FakeCpxHandler(socketserver.StreamRequestHandler):
             if name == "read_vout":
                 v, i, bits = ch.readback(state.noisy)
                 ch.lsr_pending |= bits
+                if state.corrupt_next_vout:
+                    state.corrupt_next_vout = False
+                    return f"V{n} {v:.3f}"
                 return f"{v:.3f}V"
             if name == "read_iout":
                 v, i, bits = ch.readback(state.noisy)
